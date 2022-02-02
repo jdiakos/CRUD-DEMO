@@ -5,7 +5,6 @@ import Head from "next/head"
 import { Button } from "@mui/material"
 import jwt from "jsonwebtoken"
 import { useRouter } from 'next/router'
-import Snacksbar from '../components/snacksbar'
 import { setCookies, getCookies } from 'cookies-next'
 
 export default function Home () {

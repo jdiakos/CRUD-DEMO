@@ -1,4 +1,3 @@
-import { NextApiRequest, NextApiResponse } from 'next'
 import jwt from 'jsonwebtoken'
 import { successLogin } from '../../lib/queries'
 

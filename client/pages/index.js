@@ -7,7 +7,6 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import Button from '@mui/material/Button'
 import EditIcon from '@mui/icons-material/Edit'
 import { useRouter } from 'next/router'
-import jwt from "jsonwebtoken"
 import { getCookies, removeCookies, setCookies } from 'cookies-next'
 
 //fetch data from db
