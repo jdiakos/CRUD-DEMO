@@ -1,17 +1,47 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import Head from 'next/head'
-import Container from "@mui/material/Container";
-import { TextField }  from "@mui/material";
-import Radio from "@mui/material/Radio";
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import DatePicker from '@mui/lab/DatePicker';
-import Button from '@mui/material/Button';
-import { useRouter } from 'next/router';
+import Container from "@mui/material/Container"
+import { TextField }  from "@mui/material"
+import Radio from "@mui/material/Radio"
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormLabel from '@mui/material/FormLabel'
+import FormControl from '@mui/material/FormControl'
+import AdapterDateFns from '@mui/lab/AdapterDateFns'
+import LocalizationProvider from '@mui/lab/LocalizationProvider'
+import DatePicker from '@mui/lab/DatePicker'
+import Button from '@mui/material/Button'
+import { useRouter } from 'next/router'
+import { getCookies, removeCookies } from 'cookies-next'
+
+const KEY = 'jasdljdaslkjas'
+//fetch data from db
+export async function getServerSideProps({req}) {
+  const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, {
+    headers: {
+      Cookie: req.headers.cookie
+    }
+  })
+  //Redirect to loginPage
+  if(res.status != 200) {
+    return {
+      redirect: {
+        permament: false,
+        destination: "/loginPage",
+      },
+      props: {},
+    }
+  }
+
+  const cook = getCookies({ req, res }).token
+  console.log(res.status)
+  const data = await res.json()
+
+  if (!data) {
+    return { notFound: true, }
+  }  
+  return { props: {data}  }
+}
 
 export default function newRec() {
   const [value, setValue] = React.useState(null);
@@ -30,7 +60,7 @@ export default function newRec() {
                            }),
       headers: { 'Content-Type': 'application/json' }
     };
-    const res = await fetch('http://localhost:3001/users', requestData);
+    const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, requestData);
     
     return ( router.push('/') );
   }

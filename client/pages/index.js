@@ -1,28 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import Head from 'next/head'
-import Image from 'next/image'
-import Container from "@mui/material/Container";
-import { DataGrid } from '@mui/x-data-grid';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Button from '@mui/material/Button';
-import EditIcon from '@mui/icons-material/Edit';
-import Link from 'next/link'
+import Container from "@mui/material/Container"
+import { DataGrid } from '@mui/x-data-grid'
+import IconButton from '@mui/material/IconButton'
+import DeleteIcon from '@mui/icons-material/Delete'
+import Button from '@mui/material/Button'
+import EditIcon from '@mui/icons-material/Edit'
 import { useRouter } from 'next/router'
+import jwt from "jsonwebtoken"
+import { getCookies, removeCookies, setCookies } from 'cookies-next'
 
 //fetch data from db
-export async function getServerSideProps() {
-  const res = await fetch('http://localhost:3001/users')
+export async function getServerSideProps({req}) {
+  const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, {
+    headers: {
+      Cookie: req.headers.cookie
+    }
+  })
+  if(res.status != 200) {
+    return {
+      redirect: {
+        permament: false,
+        destination: "/loginPage",
+      },
+      props: {},
+    }
+  }
+
+  const cook = getCookies({ req, res }).token
+  console.log(res.status)
   const data = await res.json()
   
-  console.log(data);
   if (!data) {
     return { notFound: true, }
   }  
   return { props: {data}  }
 }
 
-export default function Home( { data } ) {
+export default function Home( { data, req} ) {
   const [value, setValue] = React.useState(null);  
   const [rows, setRows] = React.useState(data);
   const [getId, setGetId] = React.useState(data) 
@@ -39,11 +54,11 @@ export default function Home( { data } ) {
                onClick={ async () => {
                  console.log('User with id: '+ data.id+' was deleted')
                  const deleteData = {
-                   method:'DELETE',
-                   body: JSON.stringify({id: data.id}),
-                   headers: { 'Content-Type': 'application/json' }
+                  method:'DELETE',
+                  body: JSON.stringify({id: data.id}),
+                  headers: { 'Content-Type': 'application/json' }
                  };
-                 const delRes = await fetch(`http://localhost:3001/users/${data.id}`, deleteData);
+                 const delRes = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, deleteData);
                  router.push('/')
                }} >
                <DeleteIcon />
@@ -54,10 +69,9 @@ export default function Home( { data } ) {
       width: 80,
       sortable: false,
       renderCell: (data) => {
-      // you will find row info in params
       return <IconButton aria-label="edit" 
                 onClick={ async() => { 
-                  const userRes = await fetch(`http://localhost:3001/users/${parseInt(data.id)}`)
+                  const userRes = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${data.id}`)
                   const datUser = await userRes.json()
                   //const userId = props.datUser[0].id 
                   console.log(datUser[0].last_name)
@@ -80,8 +94,16 @@ export default function Home( { data } ) {
   ];
 
   const newRec = () => {
-    //<Link href="/actions/newRecord" />   
     return router.push('/actions/newRecord')
+  }
+
+  const unLog = () => {
+    const cook = getCookies({ req, data }).token
+    console.log(getCookies({ req, data }).token)
+    removeCookies(req, getCookies({ req, data }).token, {domain:'localhost', path:'/'})
+    
+    alert('Έχετε αποσυνδεθεί')
+    return router.push('/loginPage')
   }
 
   return (
@@ -90,11 +112,14 @@ export default function Home( { data } ) {
         <title>CRUD Project</title>
       </Head>
       <h1> Μέλη Δημοτικού Συμβουλίου</h1>
+      <Button size="small" onClick={unLog}>
+        Αποσύνδεση
+      </Button>
       <p>Στον παρακάτω πίνακα αναγράφονται τα μέλη του δημοτικού συμβουλίου του δήμου Πατρέων</p>
       
       <Button size="small" onClick={newRec}>
         Νέα Εγγραφή
-    </Button>
+      </Button>
       <div style = {{ height: 400, width:'100%'}} >
         <DataGrid
           aria-label = 'emp-grid'

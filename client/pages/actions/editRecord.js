@@ -1,26 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import Head from 'next/head'
-import Container from "@mui/material/Container";
-import { TextField }  from "@mui/material";
-import Radio from "@mui/material/Radio";
-import RadioGroup from '@mui/material/RadioGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
-import DatePicker from '@mui/lab/DatePicker';
-import Button from '@mui/material/Button';
-import { useRouter } from 'next/router';
+import Container from "@mui/material/Container"
+import { TextField }  from "@mui/material"
+import Radio from "@mui/material/Radio"
+import RadioGroup from '@mui/material/RadioGroup'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import FormLabel from '@mui/material/FormLabel'
+import FormControl from '@mui/material/FormControl'
+import AdapterDateFns from '@mui/lab/AdapterDateFns'
+import LocalizationProvider from '@mui/lab/LocalizationProvider'
+import DatePicker from '@mui/lab/DatePicker'
+import Button from '@mui/material/Button'
+import { useRouter } from 'next/router'
+import { getCookies } from 'cookies-next'
 
 export async function getServerSideProps(context) {
-    const res = await fetch(`http://localhost:3001/users/${context.query.id}`)
-    const data = await res.json()
-    console.log(data);
-    if (!data) {
-      return { notFound: true, }
-    }  
-    return { props: {data}  }  
+  const res = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${context.query.id}`
+  , {
+    headers: {
+      Cookie: context.req.headers.cookie
+    }
+   }
+  )
+  console.log(res.status)
+  console.log(getCookies(context.req.headers.cookie))
+  if(res.status != 200) {
+    return {
+      redirect: {
+        permament: false,
+        destination: "/loginPage",
+      },
+      props: {},
+    }
+  }
+  //console.log(getCookies({ context, res }).token)
+  const data = await res.json()
+  //console.log(data);
+  if (!data) {
+    return { notFound: true, }
+  }  
+  return { props: {data}  }  
 }
 
 export default function newRec( { data } ) {
@@ -28,12 +47,6 @@ export default function newRec( { data } ) {
     const [selection, setSelection] = React.useState()
     const [gtUser, setGtUser] = React.useState(data[0])
     const router = useRouter()
-    console.log(router.query.id)
-    console.log(data)
-    console.log(gtUser.last_name)
-    console.log(gtUser.first_name)
-    console.log(gtUser.is_active)
-    console.log(gtUser.date_of_birth)
 
     const onChange = (e, fld) => {
       if ( fld !== 'date_of_birth' ) {
@@ -60,7 +73,7 @@ export default function newRec( { data } ) {
                              }),
         headers: { 'Content-Type': 'application/json' }
       };
-      const res = await fetch(`http://localhost:3001/users/${router.query.id}`, requestData);
+      const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, requestData);
   
       return ( router.push('/') );
     }
