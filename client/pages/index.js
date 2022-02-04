@@ -1,13 +1,13 @@
-import React, { useState } from 'react'
-import Head from 'next/head'
-import Container from "@mui/material/Container"
-import { DataGrid } from '@mui/x-data-grid'
-import IconButton from '@mui/material/IconButton'
-import DeleteIcon from '@mui/icons-material/Delete'
-import Button from '@mui/material/Button'
-import EditIcon from '@mui/icons-material/Edit'
-import { useRouter } from 'next/router'
-import { getCookies, removeCookies, setCookies } from 'cookies-next'
+import React, { useState } from 'react';
+import Head from 'next/head';
+import Container from "@mui/material/Container";
+import { DataGrid } from '@mui/x-data-grid';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import Button from '@mui/material/Button';
+import EditIcon from '@mui/icons-material/Edit';
+import { useRouter } from 'next/router';
+import { getCookies, removeCookies, setCookies } from 'cookies-next';
 
 //fetch data from db
 export async function getServerSideProps({req}) {
@@ -15,7 +15,7 @@ export async function getServerSideProps({req}) {
     headers: {
       Cookie: req.headers.cookie
     }
-  })
+  });
   if(res.status != 200) {
     return {
       redirect: {
@@ -23,24 +23,24 @@ export async function getServerSideProps({req}) {
         destination: "/loginPage",
       },
       props: {},
-    }
+    };
   }
 
-  const cook = getCookies({ req, res }).token
-  console.log(res.status)
-  const data = await res.json()
+  const cook = getCookies({ req, res }).token;
+  console.log(res.status);
+  const data = await res.json();
   
   if (!data) {
-    return { notFound: true, }
+    return { notFound: true, };
   }  
-  return { props: {data}  }
+  return { props: {data}  };
 }
 
 export default function Home( { data, req} ) {
   const [value, setValue] = React.useState(null);  
   const [rows, setRows] = React.useState(data);
-  const [getId, setGetId] = React.useState(data) 
-  const router = useRouter()
+  const [getId, setGetId] = React.useState(data) ;
+  const router = useRouter();
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 50, hide: true},
@@ -50,18 +50,18 @@ export default function Home( { data, req} ) {
       sortable: false,
       renderCell: (data) => {
       return <IconButton aria-label="delete" 
-               onClick={ async () => {
-                 console.log('User with id: '+ data.id+' was deleted')
+          onClick={ async () => {
+                 console.log('User with id: '+ data.id+' was deleted');
                  const deleteData = {
                   method:'DELETE',
                   body: JSON.stringify({id: data.id}),
                   headers: { 'Content-Type': 'application/json' }
                  };
                  const delRes = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, deleteData);
-                 router.push('/')
+                 router.push('/');
                }} >
                <DeleteIcon />
-             </IconButton> 
+             </IconButton>; 
     }},
     { field: 'edt', 
       headerName: 'Επεξεργασία',
@@ -69,18 +69,18 @@ export default function Home( { data, req} ) {
       sortable: false,
       renderCell: (data) => {
       return <IconButton aria-label="edit" 
-                onClick={ async() => { 
-                  const userRes = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${data.id}`)
-                  const datUser = await userRes.json()
+          onClick={ async() => { 
+                  const userRes = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${data.id}`);
+                  const datUser = await userRes.json();
                   //const userId = props.datUser[0].id 
-                  console.log(datUser[0].last_name)
+                  console.log(datUser[0].last_name);
                   
                   router.push({
                     pathname: '/actions/editRecord',
-                    query: {id: datUser[0].id }})
+                    query: {id: datUser[0].id }});
                   }} > 
                 <EditIcon />
-             </IconButton> 
+             </IconButton> ;
     }},
     { field: 'last_name', headerName: 'Επώνυμο', width: 150},
     { field: 'first_name', headerName: 'Όνομα', width: 100},
@@ -93,17 +93,17 @@ export default function Home( { data, req} ) {
   ];
 
   const newRec = () => {
-    return router.push('/actions/newRecord')
-  }
+    return router.push('/actions/newRecord');
+  };
 
   const unLog = () => {
-    const cook = getCookies({ req, data }).token
-    console.log(getCookies({ req, data }).token)
-    removeCookies(req, getCookies({ req, data }).token, {domain:'localhost', path:'/'})
+    const cook = getCookies({ req, data }).token;
+    console.log(getCookies({ req, data }).token);
+    removeCookies(req, getCookies({ req, data }).token, {domain:'localhost', path:'/'});
     
-    alert('Έχετε αποσυνδεθεί')
-    return router.push('/loginPage')
-  }
+    alert('Έχετε αποσυνδεθεί');
+    return router.push('/loginPage');
+  };
 
   return (
     <Container maxWidth="md">
@@ -111,21 +111,23 @@ export default function Home( { data, req} ) {
         <title>CRUD Project</title>
       </Head>
       <h1> Μέλη Δημοτικού Συμβουλίου</h1>
-      <Button size="small" onClick={unLog}>
+      <Button size="small" 
+          onClick={unLog}>
         Αποσύνδεση
       </Button>
       <p>Στον παρακάτω πίνακα αναγράφονται τα μέλη του δημοτικού συμβουλίου του δήμου Πατρέων</p>
       
-      <Button size="small" onClick={newRec}>
+      <Button size="small" 
+          onClick={newRec}>
         Νέα Εγγραφή
       </Button>
       <div style = {{ height: 400, width:'100%'}} >
         <DataGrid
-          aria-label = 'emp-grid'
-          rows={data} 
-          columns={columns}
+            aria-label = 'emp-grid'
+            rows={data} 
+            columns={columns}
         />
       </div>
     </Container>
-  )
+  );
 }
