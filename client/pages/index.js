@@ -8,32 +8,39 @@ import Button from '@mui/material/Button';
 import EditIcon from '@mui/icons-material/Edit';
 import { useRouter } from 'next/router';
 import { getCookies, removeCookies, setCookies } from 'cookies-next';
+import { errorHandler } from './api/errorHandler';
 
 //fetch data from db
 export async function getServerSideProps({req}) {
-  const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, {
-    headers: {
-      Cookie: req.headers.cookie
-    }
-  });
-  if(res.status != 200) {
-    return {
-      redirect: {
-        permament: false,
-        destination: "/loginPage",
-      },
-      props: {},
-    };
-  }
-
-  const cook = getCookies({ req, res }).token;
-  console.log(res.status);
-  const data = await res.json();
+  try {
+    const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, {
+      headers: {
+        Cookie: req.headers.cookie
+      }
+    });
   
-  if (!data) {
-    return { notFound: true, };
-  }  
-  return { props: {data}  };
+    if(res.status != 200) {
+      return {
+        redirect: {
+          permament: false,
+          destination: "/loginPage",
+        },
+        props: {},
+      };
+    }
+
+    const cook = getCookies({ req, res }).token;
+    console.log(res.status);
+    const data = await res.json();
+    
+    if (!data) {
+      return { notFound: true, };
+    }  
+    return { props: {data}  };
+  
+  } catch (err) {
+      console.log('Error during fetching data: ' + err);
+  }
 }
 
 export default function Home( { data, req} ) {
@@ -52,13 +59,18 @@ export default function Home( { data, req} ) {
       return <IconButton aria-label="delete" 
           onClick={ async () => {
                  console.log('User with id: '+ data.id+' was deleted');
-                 const deleteData = {
-                  method:'DELETE',
-                  body: JSON.stringify({id: data.id}),
-                  headers: { 'Content-Type': 'application/json' }
-                 };
-                 const delRes = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, deleteData);
-                 router.push('/');
+
+                 try {
+                  const deleteData = {
+                    method:'DELETE',
+                    body: JSON.stringify({id: data.id}),
+                    headers: { 'Content-Type': 'application/json' }
+                  };
+                  const delRes = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, deleteData);
+                  router.push('/');
+                 } catch (err) {
+                    console.log('Error deleting the selected user: ' + err);
+                 }
                }} >
                <DeleteIcon />
              </IconButton>; 
@@ -70,6 +82,7 @@ export default function Home( { data, req} ) {
       renderCell: (data) => {
       return <IconButton aria-label="edit" 
           onClick={ async() => { 
+              try{
                   const userRes = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${data.id}`);
                   const datUser = await userRes.json();
                   //const userId = props.datUser[0].id 
@@ -78,6 +91,9 @@ export default function Home( { data, req} ) {
                   router.push({
                     pathname: '/actions/editRecord',
                     query: {id: datUser[0].id }});
+             } catch {
+                console.log('Error reading the data of the selected user: ' + err);
+             }
                   }} > 
                 <EditIcon />
              </IconButton> ;

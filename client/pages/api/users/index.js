@@ -1,6 +1,7 @@
 import { getUsers, createUser, deleteUser, updateUser } from "../../../lib/queries";
 import { setCookies, getCookies } from 'cookies-next';
 import jwt from "jsonwebtoken";
+import { errorHandler } from "../errorHandler";
 
 const KEY = process.env.DB_TOKEN_KEY;
 
@@ -19,19 +20,30 @@ export default async function handler(req, res) {
           
           } else if (req.method === 'POST') {
                const { last_name, first_name, is_active, date_of_birth } = req.body;
-               const newUser = await createUser(last_name, first_name, is_active, date_of_birth);
-               res.send(newUser);
+               try {
+                    const newUser = await createUser(last_name, first_name, is_active, date_of_birth);
+                    res.send(newUser);
+               } catch (err){
+                    errorHandler(err, res);
+               }               
 
           } else if (req.method === 'PUT') {
                const { last_name, first_name, is_active, date_of_birth, id } = req.body;
-               console.log(req.body);
-               const edtUser = await updateUser(last_name, first_name, is_active, date_of_birth, id);
-               res.send(edtUser);
+               try {
+                    const edtUser = await updateUser(last_name, first_name, is_active, date_of_birth, id);
+                    res.send(edtUser);
+               } catch (err) {
+                    errorHandler(err, res);
+               }
 
           } else if (req.method === 'DELETE') {
                const id = req.body;
-               const dltUser = await deleteUser(id.id);
-               res.send(dltUser);
+               try {
+                    const dltUser = await deleteUser(id.id);
+                    res.send(dltUser);
+               } catch (err) {
+                    errorHandler(err, res);
+               }
           }
      }
 }

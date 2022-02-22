@@ -13,33 +13,38 @@ import DatePicker from '@mui/lab/DatePicker';
 import Button from '@mui/material/Button';
 import { useRouter } from 'next/router';
 import { getCookies } from 'cookies-next';
+import { errorHandler } from '../api/errorHandler';
 
 export async function getServerSideProps(context) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${context.query.id}`
-  , {
-    headers: {
-      Cookie: context.req.headers.cookie
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_ALL_USERS}/${context.query.id}`
+    , {
+      headers: {
+        Cookie: context.req.headers.cookie
+      }
     }
-   }
-  );
-  console.log(res.status);
-  console.log(getCookies(context.req.headers.cookie));
-  if(res.status != 200) {
-    return {
-      redirect: {
-        permament: false,
-        destination: "/loginPage",
-      },
-      props: {},
-    };
+    );
+    console.log(res.status);
+    console.log(getCookies(context.req.headers.cookie));
+    if(res.status != 200) {
+      return {
+        redirect: {
+          permament: false,
+          destination: "/loginPage",
+        },
+        props: {},
+      };
+    }
+    
+    const data = await res.json();
+    
+    if (!data) {
+      return { notFound: true, };
+    }  
+    return { props: {data}  }  ;
+  } catch (err) {
+      console.log('Error message during fetching the user data: ' + err);
   }
-  //console.log(getCookies({ context, res }).token)
-  const data = await res.json();
-  //console.log(data);
-  if (!data) {
-    return { notFound: true, };
-  }  
-  return { props: {data}  }  ;
 }
 
 export default function newRec( { data } ) {
@@ -59,21 +64,25 @@ export default function newRec( { data } ) {
           setGtUser(tmp);
       }
     };
-    
+    console.log(gtUser);
     const saveData = async () => {
-      console.log(new Date (gtUser.date_of_birth).toLocaleDateString());
-      const newDate = new Date (gtUser.date_of_birth).toLocaleDateString();
-      const requestData = {
-        method: 'PUT',
-        body: JSON.stringify ({ last_name: gtUser.last_name,
-                               first_name: gtUser.first_name,
-                               is_active: gtUser.is_active,
-                               date_of_birth: newDate,
-                               id: router.query.id
-                             }),
-        headers: { 'Content-Type': 'application/json' }
-      };
-      const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, requestData);
+      try{
+        console.log(new Date (gtUser.date_of_birth).toLocaleDateString());
+        const newDate = new Date (gtUser.date_of_birth).toLocaleDateString();
+        const requestData = {
+          method: 'PUT',
+          body: JSON.stringify ({ last_name: gtUser.last_name,
+                                first_name: gtUser.first_name,
+                                is_active: gtUser.is_active,
+                                date_of_birth: newDate,
+                                id: router.query.id
+                              }),
+          headers: { 'Content-Type': 'application/json' }
+        };
+        const res = await fetch(process.env.NEXT_PUBLIC_ALL_USERS, requestData);
+      } catch (err) {
+          console.log('Error message during saving the changes: ' + err);
+      }
   
       return ( router.push('/') );
     };
